@@ -351,6 +351,31 @@ const StepOne = ({ bookingData, onNavigate, onBack, setData, nftData, setSelecte
     }
   };
 
+  const polygonMainnet = {
+    chainId: "0x89", // Hexadecimal representation of 137
+    chainName: "Polygon Mainnet",
+    nativeCurrency: {
+      name: "MATIC",
+      symbol: "MATIC", // Symbol of the currency
+      decimals: 18, // Precision of the currency
+    },
+    rpcUrls: ["https://polygon-rpc.com"], // Public RPC URL
+    blockExplorerUrls: ["https://polygonscan.com"], // Explorer URL
+  };
+
+  const switchToAmoyNetwork = async () => {
+    try {
+      await window.ethereum.request({
+        method: "wallet_addEthereumChain",
+        params: [polygonMainnet],
+      });
+      console.log("Switched to polygonMainnet network");
+    } catch (error) {
+      console.error("Failed to switch networks:", error);
+      throw error;
+    }
+  };
+  
 
   const connectAndSign = async () => {
     setIsConnecting(true);
@@ -364,6 +389,7 @@ const StepOne = ({ bookingData, onNavigate, onBack, setData, nftData, setSelecte
       }
 
       // Create provider and request accounts
+      switchToAmoyNetwork();
       const provider = new BrowserProvider(window.ethereum);
       await provider.send("eth_requestAccounts", []);
 
