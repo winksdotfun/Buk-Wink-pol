@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: 'Timmy', sans-serif;
+}
+
+
+input::placeholder {
+  /* color: #CA3F2A;  */
+  color: white;
+  font-weight: lighter;
+  text-align: center;
+  font-size: medium;
+}
+
+
+@font-face {
+  font-family: 'GraphicPixel';
+  src: url('/fonts/graphicpixel.ttf') format('truetype');
+}
+
+.pixel-font {
+  font-family: 'GraphicPixel';
+  font-weight: normal;
+  font-style: normal;
+}
