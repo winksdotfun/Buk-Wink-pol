@@ -96,7 +96,7 @@ const StepThree = ({ onNavigate, onBack, totalPrice, tokenID, nftData, propertyI
       if (nftData) {
         try {
           const response = await axios.get(
-            `https://api.base.dassets.xyz/v2/hotel/getNFTBooking?tokenId=${nftData}`
+            `https://api.prawasa.com/v2/hotel/getNFTBooking?tokenId=${nftData}`
           );
           const data = response.data;
           console.log(data);
@@ -239,7 +239,7 @@ const handleBuyRoom = async () => {
 
       // Call the createBooking API
       const response = await axios.post(
-        "https://api.base.dassets.xyz/v2/hotel/createBooking",
+        "https://api.prawasa.com/v2/hotel/createBooking",
         bookingParams,
         { headers }
       );

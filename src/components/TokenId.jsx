@@ -16,7 +16,7 @@ const TokenId = ({ onNavigate }) => {
   
     try {
       const response = await axios.get(
-        `https://api.base.dassets.xyz/v2/hotel/getNFTBooking?tokenId=${nftId}`
+        `https://api.prawasa.com/v2/hotel/getNFTBooking?tokenId=${nftId}`
       );
   
       const bookingStatus = response.data?.data?.status;

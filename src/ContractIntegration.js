@@ -2,8 +2,8 @@ import { ethers } from "ethers";
 import abi from "./abi.json";
 import tokenabi from "./tokenabi.json";
 
-const contract_address = "0xeE47bf2d14773ECdf2025C7176dB8049b693a666";
-const usdc_contract = "0x0857a887A3E14E1c7EcD612292E3b1fD57b76551";
+const contract_address = "0x631ac30648af0baa2b8cefcfba463bba8b68a902";
+const usdc_contract = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174";
 
 
 const amoyNetwork = {
