@@ -1,10 +1,10 @@
 import { ethers } from "ethers";
 import abi from "./abi.json";
 import tokenabi from "./tokenabi.json";
+import { logAnalyticsEvent } from './firebase';
 
 const contract_address = "0xeE47bf2d14773ECdf2025C7176dB8049b693a666";
 const usdc_contract = "0x0857a887A3E14E1c7EcD612292E3b1fD57b76551";
-
 
 const amoyNetwork = {
   chainId: "0x1F",
@@ -42,8 +42,13 @@ const switchToAmoyNetwork = async () => {
 export const buyRoom = async (_tokenId) => {
   try {
     if (!checkMetaMask()) {
+      logAnalyticsEvent('metamask_not_installed');
       throw new Error("Please install MetaMask to continue");
     }
+
+    logAnalyticsEvent('buy_room_initiated', {
+      tokenId: _tokenId
+    });
 
     // Create RPC provider for reading state
     //const rpcProvider = new ethers.JsonRpcProvider(RPC_URL);
@@ -106,13 +111,21 @@ export const buyRoom = async (_tokenId) => {
     });
 
     console.log("Transaction sent:", transaction.hash);
+    logAnalyticsEvent('buy_room_success', {
+      tokenId: _tokenId,
+      userAddress: userAddress
+    });
     // const receipt = await transaction.wait();
     // console.log("Transaction successful:", receipt);
     sessionStorage.setItem("transactionId", transaction.hash);
     return  transaction.hash;
 
   } catch (error) {
-    console.error("Error executing buyRoom:", error);
+    logAnalyticsEvent('buy_room_error', {
+      tokenId: _tokenId,
+      error: error.message
+    });
+    console.error("Error buying room:", error);
     //0xad4414c8ca792284cf42e0a91fe805c21bd3e048ea33171a4d9f2f294b37b55c
     if (error.code === 4001) {
       throw new Error("Transaction rejected by user");
@@ -130,6 +143,9 @@ export const buyRoom = async (_tokenId) => {
 
 if (checkMetaMask()) {
   window.ethereum.on("accountsChanged", (accounts) => {
+    logAnalyticsEvent('account_changed', {
+      newAccount: accounts[0]
+    });
     console.log("Account changed:", accounts[0]);
   });
 

@@ -6,8 +6,8 @@ import step from "../assets/updated/step.png";
 import step1 from "../assets/updated/step1.png";
 import arrow from "../assets/updated/arrow.png";
 import { BrowserProvider } from "ethers";
-
 import { id } from "ethers";
+import { logAnalyticsEvent } from '../firebase';
 
 const StepOne = ({ bookingData, onNavigate, onBack, setData, nftData, setSelectedRate, selectedRate, setOptionHash, optionHash, setPropertyId, propertyId, setUserInfo, userInfo }) => {
   const [email, setEmail] = useState("");
@@ -37,13 +37,19 @@ const StepOne = ({ bookingData, onNavigate, onBack, setData, nftData, setSelecte
   const handleEmailChange = (e) => {
     setEmail(e.target.value);
     if (emailError) setEmailError("");
+    logAnalyticsEvent('email_input_change', {
+      tokenId: nftData
+    });
   };
-
 
   const handlePhoneChange = (e) => {
     setPhone(e.target.value);
     if (phoneError) setPhoneError("");
+    logAnalyticsEvent('phone_input_change', {
+      tokenId: nftData
+    });
   };
+
   const handleCountryCodeChange = (e) => {
     let code = e.target.value;
   
@@ -58,7 +64,6 @@ const StepOne = ({ bookingData, onNavigate, onBack, setData, nftData, setSelecte
       sessionStorage.setItem('countryCode', code);
     }
   };
-  
 
   const PropertyID = propertyId;
   console.log('====================================');
@@ -251,30 +256,58 @@ const StepOne = ({ bookingData, onNavigate, onBack, setData, nftData, setSelecte
 
 
   // Function to handle the Next button click
-  const handleNext = () => {
-    let isValid = true;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    logAnalyticsEvent('booking_form_submit', {
+      tokenId: nftData,
+      hasEmail: !!email,
+      hasPhone: !!phone
+    });
 
     // Validate email
-    if (!validateEmail(email)) {
-      setEmailError("Invalid email address");
-      isValid = false;
-    } else {
-      setEmailError("");
+    if (!email) {
+      setEmailError("Email is required");
+      logAnalyticsEvent('booking_validation_error', {
+        tokenId: nftData,
+        error: 'email_required'
+      });
+      return;
+    }
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      setEmailError("Please enter a valid email");
+      logAnalyticsEvent('booking_validation_error', {
+        tokenId: nftData,
+        error: 'invalid_email'
+      });
+      return;
     }
 
-    // Validate phone number
-    if (!validatePhone(phone)) {
-      setPhoneError("Invalid phone number");
-      isValid = false;
-    } else {
-      setPhoneError("");
+    // Validate phone
+    if (!phone) {
+      setPhoneError("Phone number is required");
+      logAnalyticsEvent('booking_validation_error', {
+        tokenId: nftData,
+        error: 'phone_required'
+      });
+      return;
     }
 
-    // Proceed if all inputs are valid
-    if (isValid) {
+    try {
       fetchHotelData();
-      setNavigateAfterUpdate(true);
+      logAnalyticsEvent('booking_submit_success', {
+        tokenId: nftData,
+        propertyId: propertyId,
+        optionHash: hashCode
+      });
       
+      onNavigate("steptwo");
+    } catch (error) {
+      logAnalyticsEvent('booking_submit_error', {
+        tokenId: nftData,
+        error: error.message
+      });
+      console.error("Error submitting booking:", error);
     }
   };
 
@@ -394,7 +427,7 @@ const StepOne = ({ bookingData, onNavigate, onBack, setData, nftData, setSelecte
 
   const handleButtonClick = async () => {
     await connectAndSign(); // Wait for connection and signing to complete
-    handleNext(); // Move to the next step after signing
+    handleSubmit(); // Move to the next step after signing
   };
 
   useEffect(() => {

@@ -1,13 +1,12 @@
-
 import first from '../assets/updated/bg.png';
 import buk from '../assets/updated/buk.png';
 import step from '../assets/updated/step.png'
 import step1 from '../assets/updated/step1.png'
 import arrow from '../assets/updated/arrow.png'
 import step2 from '../assets/updated/step2.png'
-// import WalletConnect from './Signer';
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { logAnalyticsEvent } from '../firebase';
 
 const StepTwo = ({ onNavigate, onBack, bookingData, nftData, optionHash, setQuoteHash, selectedRate }) => {
   const [quoteData, setQuoteData] = useState(null);
@@ -16,30 +15,43 @@ const StepTwo = ({ onNavigate, onBack, bookingData, nftData, optionHash, setQuot
   const [lastName, setLastName] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
-
   useEffect(() => {
     const fetchBookingData = async () => {
       if (nftData) {
         try {
+          logAnalyticsEvent('step_two_fetch_booking_started', {
+            tokenId: nftData
+          });
+
           const response = await axios.get(
             `https://api.base.dassets.xyz/v2/hotel/getNFTBooking?tokenId=${nftData}`
           );
           const data = response.data;
-          console.log("getNFTBooking 2 ",data);
-
-          const tokenID = nftData;
 
           if (data && data.status === true) {
-            // Find the image with mainImage set to true and set roomImage
-            const mainImage = data.data.booking.property.images.find(
-              (image) => image.mainImage === true
-            );
-            if (mainImage) {
-              setRoomImage(mainImage.hdUrl); // Set the roomImage to the hdUrl
-              console.log(roomImage);
+            logAnalyticsEvent('step_two_fetch_booking_success', {
+              tokenId: nftData,
+              propertyId: data.data.booking.property.id
+            });
+
+            const tokenID = nftData;
+
+            if (data && data.status === true) {
+              // Find the image with mainImage set to true and set roomImage
+              const mainImage = data.data.booking.property.images.find(
+                (image) => image.mainImage === true
+              );
+              if (mainImage) {
+                setRoomImage(mainImage.hdUrl); // Set the roomImage to the hdUrl
+                console.log(roomImage);
+              }
             }
           }
         } catch (error) {
+          logAnalyticsEvent('step_two_fetch_booking_error', {
+            tokenId: nftData,
+            error: error.message
+          });
           console.error("Error fetching NFT booking details:", error);
         }
       }
@@ -52,12 +64,10 @@ const StepTwo = ({ onNavigate, onBack, bookingData, nftData, optionHash, setQuot
   console.log(optionHash);
   console.log('====================================');
 
-
   useEffect(() => {
     const fetchQuoteData = async () => {
       const token = localStorage.getItem("accessToken");
       console.log("access token", token)
-
 
       console.log("before checking quote", token );
       console.log("before checking quote", bookingData?.hash );
@@ -119,18 +129,43 @@ const StepTwo = ({ onNavigate, onBack, bookingData, nftData, optionHash, setQuot
     fetchQuoteData();
   }, [bookingData]);
 
-  const handleNext = () => {
-    // Reset the error message
-    setErrorMessage('');
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    logAnalyticsEvent('guest_details_submit', {
+      tokenId: nftData,
+      hasFirstName: !!firstName,
+      hasLastName: !!lastName
+    });
 
-    // Validate inputs
-    if (!firstName.trim() || !lastName.trim()) {
-      setErrorMessage('Please enter your First Name and Last Name.');
-      return; // Stop if validation fails
+    if (!firstName || !lastName) {
+      setErrorMessage('Please fill in all required fields');
+      logAnalyticsEvent('guest_details_validation_error', {
+        tokenId: nftData,
+        error: 'missing_required_fields'
+      });
+      return;
     }
 
-    // Call onNavigate if validation passes
-    onNavigate();
+    try {
+      // Reset the error message
+      setErrorMessage('');
+
+      // Call onNavigate if validation passes
+      logAnalyticsEvent('guest_details_submit_success', {
+        tokenId: nftData,
+        quoteHash: quoteData?.quoteHash
+      });
+
+      onNavigate("stepthree");
+    } catch (error) {
+      logAnalyticsEvent('guest_details_submit_error', {
+        tokenId: nftData,
+        error: error.message
+      });
+      console.error("Error submitting guest details:", error);
+      setErrorMessage('An error occurred. Please try again.');
+    }
   };
 
   useEffect(() => {
@@ -149,10 +184,6 @@ const StepTwo = ({ onNavigate, onBack, bookingData, nftData, optionHash, setQuot
   useEffect(() => {
     sessionStorage.setItem("lastName", lastName);
   }, [lastName]);
-
-
-
-
 
   return (
     <div className="flex justify-center items-center h-screen bg-black">
@@ -260,7 +291,7 @@ const StepTwo = ({ onNavigate, onBack, bookingData, nftData, optionHash, setQuot
               />
               <button
                 className="bg-[#CA3F2A] sm:text-xs text-white md:px-[110px] sm:px-[68px] md:py-1 sm:py-1 rounded-md md:text-lg border-[#FFE3E3] border border-opacity-50"
-                onClick={handleNext}
+                onClick={handleSubmit}
               >
                 Next
               </button>

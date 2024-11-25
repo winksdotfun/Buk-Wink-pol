@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { logAnalyticsEvent } from '../firebase';
 import first from "../assets/updated/bg.png"; // Ensure your assets are imported correctly
 import buk from "../assets/updated/buk.png";
 import icon1 from "../assets/updated/icon1.png";
@@ -12,16 +13,18 @@ const LaunchScreen = ({ onNavigate, nftData, setTokenID, tokenID, setTotalPrice 
   const [bookingData, setBookingData] = useState(null);
   const [roomImage, setRoomImage] = useState(null);
 
-
   useEffect(() => {
     const fetchBookingData = async () => {
       if (nftData) {
         try {
+          logAnalyticsEvent('fetch_booking_started', {
+            tokenId: nftData
+          });
+
           const response = await axios.get(
             `https://api.base.dassets.xyz/v2/hotel/getNFTBooking?tokenId=${nftData}`
           );
           const data = response.data;
-          console.log(data);
 
           const tokenID = nftData;
           setTokenID(tokenID);
@@ -29,8 +32,12 @@ const LaunchScreen = ({ onNavigate, nftData, setTokenID, tokenID, setTotalPrice 
           const occupancyId = data?.data?.occupancyRefId;
           sessionStorage.setItem("occuId", occupancyId)
 
-
           if (data && data.status === true) {
+            logAnalyticsEvent('fetch_booking_success', {
+              tokenId: nftData,
+              occupancyId: occupancyId,
+              propertyId: data.data.booking.property.id
+            });
             setBookingData(data); // Store booking data
 
             // Find the image with mainImage set to true and set roomImage
@@ -43,6 +50,10 @@ const LaunchScreen = ({ onNavigate, nftData, setTokenID, tokenID, setTotalPrice 
             }
           }
         } catch (error) {
+          logAnalyticsEvent('fetch_booking_error', {
+            tokenId: nftData,
+            error: error.message
+          });
           console.error("Error fetching NFT booking details:", error);
         }
       }
@@ -86,6 +97,14 @@ const LaunchScreen = ({ onNavigate, nftData, setTokenID, tokenID, setTotalPrice 
   const TotalPrice = bookingData?.data?.listingDetails?.price ?? 0;
   setTotalPrice(TotalPrice);
   
+
+  const handleNavigate = (step, bookingData) => {
+    logAnalyticsEvent('navigation_click', {
+      from: 'launch_screen',
+      to: step
+    });
+    onNavigate(step, bookingData);
+  };
 
   return (
     <div className="flex justify-center items-center h-screen bg-black">
@@ -175,7 +194,7 @@ const LaunchScreen = ({ onNavigate, nftData, setTokenID, tokenID, setTotalPrice 
           </a>
           <button
             className="text-white bg-[#CA3F2A] border border-[#FFE3E3] md:px-9 md:py-2 sm:text-xs sm:px-4 sm:py-1 md:text-[16px] rounded-lg border-opacity-50"
-            onClick={() => onNavigate("stepone", bookingData)}
+            onClick={() => handleNavigate("stepone", bookingData)}
           >
             Buy Booking
           </button>
