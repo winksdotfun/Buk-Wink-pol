@@ -124,6 +124,7 @@ const LaunchScreen = ({ onNavigate, nftData, setTokenID, tokenID, setTotalPrice 
           </div>
         </div>
       </div>
+      
   
       {/* Separate Content Section */}
       <div className="bg-[#161616] md:w-[485px] p-1 mt-1 h-fit rounded-md w-fit">

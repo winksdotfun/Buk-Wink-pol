@@ -79,7 +79,7 @@ const TokenId = ({ onNavigate }) => {
           {/* Content */}
           <div className="flex flex-col items-center justify-center w-full">
             {/* Form */}
-            <div className="flex flex-col items-center justify-center md:mt-10 sm:mt-6 border border-[#FFC4BB] shadow-lg md:py-20 sm:py-4 rounded-lg w-[90%]">
+            <div className="flex flex-col items-center justify-center md:mt-10 sm:mt-6 border border-[#FFC4BB] shadow-lg md:py-20  sm:py-4 rounded-lg w-[90%] ">
               <label className="text-[#FFC4BB] md:text-lg sm:text-sm md:mb-3 sm:mb-2">
                 Enter NFT ID
               </label>
@@ -107,6 +107,7 @@ const TokenId = ({ onNavigate }) => {
             </div>
           </div>
         </div>
+        <div className='text-red-500 pt-3'>Power by winks.fun</div>
       </div>
     </div>
   );
