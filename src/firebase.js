@@ -15,9 +15,17 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 
+// App identifier
+const APP_ID = 'buk-wink-pol';
+
 // Custom analytics event logger
 export const logAnalyticsEvent = (eventName, eventParams = {}) => {
-  logEvent(analytics, eventName, eventParams);
+  const eventWithPrefix = `${APP_ID}/${eventName}`;
+  const paramsWithApp = {
+    ...eventParams,
+    app: APP_ID
+  };
+  logEvent(analytics, eventWithPrefix, paramsWithApp);
 };
 
 export { analytics };
