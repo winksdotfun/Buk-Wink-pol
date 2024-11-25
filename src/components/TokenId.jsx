@@ -107,7 +107,7 @@ const TokenId = ({ onNavigate }) => {
             </div>
           </div>
         </div>
-        <div className='text-red-500 pt-3'>Power by winks.fun</div>
+        <div className='text-red-500 pt-3'>Powered by winks.fun</div>
       </div>
     </div>
   );
