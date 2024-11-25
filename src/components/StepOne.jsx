@@ -257,7 +257,7 @@ const StepOne = ({ bookingData, onNavigate, onBack, setData, nftData, setSelecte
 
   // Function to handle the Next button click
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    //e.preventDefault();
     
     logAnalyticsEvent('booking_form_submit', {
       tokenId: nftData,
