@@ -7,16 +7,28 @@ import icon2 from "../assets/updated/icon2.png";
 import icon3 from "../assets/updated/icon3.png";
 import hline from "../assets/updated/Line 60.png";
 import vline from "../assets/updated/Line 62.png";
+import { logAnalyticsEvent } from '../firebase';
 
 const LaunchScreen = ({ onNavigate, nftData, setTokenID, tokenID, setTotalPrice }) => {
   const [bookingData, setBookingData] = useState(null);
   const [roomImage, setRoomImage] = useState(null);
 
+  useEffect(() => {
+    logAnalyticsEvent('page_view', {
+      page_title: 'Launch Screen',
+      page_location: window.location.href
+    });
+  }, []);
 
   useEffect(() => {
     const fetchBookingData = async () => {
       if (nftData) {
         try {
+          logAnalyticsEvent('api_request', {
+            endpoint: 'getNFTBooking',
+            tokenId: nftData
+          });
+
           const response = await axios.get(
             `https://api.prawasa.com/v2/hotel/getNFTBooking?tokenId=${nftData}`
           );
@@ -29,21 +41,33 @@ const LaunchScreen = ({ onNavigate, nftData, setTokenID, tokenID, setTotalPrice 
           const occupancyId = data?.data?.occupancyRefId;
           sessionStorage.setItem("occuId", occupancyId)
 
+          logAnalyticsEvent('api_response_success', {
+            endpoint: 'getNFTBooking',
+            tokenId: nftData,
+            hasOccupancyId: !!occupancyId
+          });
 
           if (data && data.status === true) {
             setBookingData(data); // Store booking data
 
-            // Find the image with mainImage set to true and set roomImage
             const mainImage = data.data.booking.property.images.find(
               (image) => image.mainImage === true
             );
             if (mainImage) {
               setRoomImage(mainImage.hdUrl); // Set the roomImage to the hdUrl
-
+              logAnalyticsEvent('content_load', {
+                type: 'room_image',
+                screen: 'launch_screen'
+              });
             }
           }
         } catch (error) {
           console.error("Error fetching NFT booking details:", error);
+          logAnalyticsEvent('api_error', {
+            endpoint: 'getNFTBooking',
+            error: error.message,
+            tokenId: nftData
+          });
         }
       }
     };
@@ -86,6 +110,15 @@ const LaunchScreen = ({ onNavigate, nftData, setTokenID, tokenID, setTotalPrice 
   const TotalPrice = bookingData?.data?.listingDetails?.price ?? 0;
   setTotalPrice(TotalPrice);
   
+
+  const handleContinue = () => {
+    logAnalyticsEvent('navigation', {
+      from: 'launch_screen',
+      to: 'next_step',
+      has_booking_data: !!bookingData
+    });
+    onNavigate("stepone", bookingData);
+  };
 
   return (
     <div className="flex justify-center items-center h-screen bg-black">
@@ -174,7 +207,7 @@ const LaunchScreen = ({ onNavigate, nftData, setTokenID, tokenID, setTotalPrice 
           </a>
           <button
             className="text-white bg-[#CA3F2A] border border-[#FFE3E3] md:px-9 md:py-2 sm:text-xs sm:px-4 sm:py-1 md:text-[16px] rounded-lg border-opacity-50"
-            onClick={() => onNavigate("stepone", bookingData)}
+            onClick={handleContinue}
           >
             Buy Booking
           </button>

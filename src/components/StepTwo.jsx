@@ -1,4 +1,3 @@
-
 import first from '../assets/updated/bg.png';
 import buk from '../assets/updated/buk.png';
 import step from '../assets/updated/step.png'
@@ -8,6 +7,7 @@ import step2 from '../assets/updated/step2.png'
 // import WalletConnect from './Signer';
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { logAnalyticsEvent } from '../firebase';
 
 const StepTwo = ({ onNavigate, onBack, bookingData, nftData, optionHash, setQuoteHash, selectedRate }) => {
   const [quoteData, setQuoteData] = useState(null);
@@ -16,6 +16,13 @@ const StepTwo = ({ onNavigate, onBack, bookingData, nftData, optionHash, setQuot
   const [lastName, setLastName] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
+  useEffect(() => {
+    // Log page view when component mounts
+    logAnalyticsEvent('page_view', {
+      page_title: 'Step Two',
+      page_location: window.location.href,
+    });
+  }, []);
 
   useEffect(() => {
     const fetchBookingData = async () => {
@@ -26,6 +33,12 @@ const StepTwo = ({ onNavigate, onBack, bookingData, nftData, optionHash, setQuot
           );
           const data = response.data;
           console.log("getNFTBooking 2 ",data);
+
+          // Log successful NFT booking fetch
+          logAnalyticsEvent('nft_booking_fetch', {
+            tokenId: nftData,
+            status: 'success'
+          });
 
           const tokenID = nftData;
 
@@ -41,6 +54,11 @@ const StepTwo = ({ onNavigate, onBack, bookingData, nftData, optionHash, setQuot
           }
         } catch (error) {
           console.error("Error fetching NFT booking details:", error);
+          // Log error in fetching NFT booking
+          logAnalyticsEvent('nft_booking_error', {
+            tokenId: nftData,
+            error: error.message
+          });
         }
       }
     };
