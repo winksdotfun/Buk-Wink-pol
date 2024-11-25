@@ -46,7 +46,7 @@ export const buyRoom = async (_tokenId) => {
     }
 
     // Create RPC provider for reading state
-    const rpcProvider = new ethers.JsonRpcProvider(RPC_URL);
+    //const rpcProvider = new ethers.JsonRpcProvider(RPC_URL);
     
     // Get MetaMask provider and signer for transactions
     const metamaskProvider = new ethers.BrowserProvider(window.ethereum);
