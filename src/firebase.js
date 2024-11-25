@@ -15,8 +15,10 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 
-// App identifier constant
+// App identifier constants
 export const APP_ID = 'buk-wink-pol';
+export const APP_NAME = 'Buk Wink Pol';
+export const APP_TYPE = 'web-app';
 
 // Custom analytics event logger
 export const logAnalyticsEvent = (eventName, eventParams = {}) => {
@@ -24,11 +26,18 @@ export const logAnalyticsEvent = (eventName, eventParams = {}) => {
   const enrichedParams = {
     ...eventParams,
     app_id: APP_ID,
-    app_version: '1.0.0', // You can update this as needed
-    environment: process.env.NODE_ENV || 'development'
+    app_name: APP_NAME,
+    app_type: APP_TYPE,
+    app_version: '1.0.0',
+    environment: process.env.NODE_ENV || 'development',
+    timestamp: new Date().toISOString(),
+    platform: 'web'
   };
   
-  logEvent(analytics, eventName, enrichedParams);
+  // Prefix event name with app identifier for easier filtering
+  const prefixedEventName = `${APP_ID}_${eventName}`;
+  
+  logEvent(analytics, prefixedEventName, enrichedParams);
 };
 
 export default analytics;
