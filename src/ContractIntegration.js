@@ -3,8 +3,8 @@ import abi from "./abi.json";
 import tokenabi from "./tokenabi.json";
 import { logAnalyticsEvent } from './firebase';
 
-const contract_address = "0xeE47bf2d14773ECdf2025C7176dB8049b693a666";
-const usdc_contract = "0x0857a887A3E14E1c7EcD612292E3b1fD57b76551";
+const contract_address = "0xe19D79B31278B65Aa7b77F3AEA260A3e21A5a618";
+const usdc_contract = "0x6EEBe75caf9c579B3FBA9030760B84050283b50a";
 
 const amoyNetwork = {
   chainId: "0x1F",

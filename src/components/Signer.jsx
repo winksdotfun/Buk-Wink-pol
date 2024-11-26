@@ -16,7 +16,7 @@ const WalletConnect = () => {
     const handleAuth = async (address, signature, timestamp) => {
       try {
         const response = await fetch(
-          "https://api.base.dassets.xyz/auth/user/login",
+          "https://api.polygon.dassets.xyz/auth/user/login",
           {
             method: "POST",
             headers: {

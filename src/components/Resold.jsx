@@ -15,7 +15,7 @@ const Resold = ({nftData}) => {
       if (nftData) {
         try {
           const response = await axios.get(
-            `https://api.base.dassets.xyz/v2/hotel/getNFTBooking?tokenId=${nftData}`
+            `https://api.polygon.dassets.xyz/v2/hotel/getNFTBooking?tokenId=${nftData}`
           );
           const data = response.data;
           console.log(data);
