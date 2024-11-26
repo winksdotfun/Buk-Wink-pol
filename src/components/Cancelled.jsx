@@ -74,7 +74,7 @@ const Cancelled = ({nftData}) => {
             </h2>
 
             <a
-              href="https://polygon.dassets.xyz/hotels/marketplace"
+              href="https://base.dassets.xyz/hotels/marketplace"
               target="_blank"
               rel="noopener noreferrer"
               className="bg-[#CA3F2A] text-white md:px-[40px] md:mt-8 sm:px-[30px] sm:mt-2 py-1 rounded-md md:text-lg sm:text-xs border-[#FFE3E3] border border-opacity-50   "
