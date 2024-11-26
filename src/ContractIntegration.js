@@ -4,7 +4,7 @@ import tokenabi from "./tokenabi.json";
 import { logAnalyticsEvent } from './firebase';
 
 const contract_address = "0xe19D79B31278B65Aa7b77F3AEA260A3e21A5a618";
-const usdc_contract = "0x6EEBe75caf9c579B3FBA9030760B84050283b50a";
+const usdc_contract = "0x7cB3D276cCBD8DF74D0d7ef550f3201de0C1bF1C";
 
 const amoyNetwork = {
   chainId: "0x1F",
