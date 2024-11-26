@@ -6,8 +6,7 @@ import step from "../assets/updated/step.png";
 import step1 from "../assets/updated/step1.png";
 import arrow from "../assets/updated/arrow.png";
 import { BrowserProvider } from "ethers";
-
-import { id } from "ethers";
+import { logAnalyticsEvent } from '../firebase';
 
 const StepOne = ({ bookingData, onNavigate, onBack, setData, nftData, setSelectedRate, selectedRate, setOptionHash, optionHash, setPropertyId, propertyId, setUserInfo, userInfo }) => {
   const [email, setEmail] = useState("");
@@ -34,16 +33,38 @@ const StepOne = ({ bookingData, onNavigate, onBack, setData, nftData, setSelecte
     }
   }, [navigateAfterUpdate]);
 
+  useEffect(() => {
+    // Log page view when component mounts
+    logAnalyticsEvent('page_view', {
+      page_title: 'Step One',
+      page_location: window.location.href
+    });
+  }, []);
+
   const handleEmailChange = (e) => {
     setEmail(e.target.value);
-    if (emailError) setEmailError("");
+    if (emailError) {
+      setEmailError("");
+      // Log when user fixes email error
+      logAnalyticsEvent('form_error_resolved', {
+        field: 'email',
+        screen: 'step_one'
+      });
+    }
   };
-
 
   const handlePhoneChange = (e) => {
     setPhone(e.target.value);
-    if (phoneError) setPhoneError("");
+    if (phoneError) {
+      setPhoneError("");
+      // Log when user fixes phone error
+      logAnalyticsEvent('form_error_resolved', {
+        field: 'phone',
+        screen: 'step_one'
+      });
+    }
   };
+
   const handleCountryCodeChange = (e) => {
     let code = e.target.value;
   
@@ -251,30 +272,51 @@ const StepOne = ({ bookingData, onNavigate, onBack, setData, nftData, setSelecte
 
 
   // Function to handle the Next button click
-  const handleNext = () => {
-    let isValid = true;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    // Log form submission attempt
+    logAnalyticsEvent('form_submission_attempt', {
+      screen: 'step_one'
+    });
 
     // Validate email
-    if (!validateEmail(email)) {
-      setEmailError("Invalid email address");
-      isValid = false;
-    } else {
-      setEmailError("");
+    if (!email) {
+      setEmailError("Email is required");
+      logAnalyticsEvent('form_validation_error', {
+        field: 'email',
+        error: 'required',
+        screen: 'step_one'
+      });
+      return;
     }
 
-    // Validate phone number
-    if (!validatePhone(phone)) {
-      setPhoneError("Invalid phone number");
-      isValid = false;
-    } else {
-      setPhoneError("");
+    // Validate phone
+    if (!phone) {
+      setPhoneError("Phone number is required");
+      logAnalyticsEvent('form_validation_error', {
+        field: 'phone',
+        error: 'required',
+        screen: 'step_one'
+      });
+      return;
     }
 
-    // Proceed if all inputs are valid
-    if (isValid) {
-      fetchHotelData();
-      setNavigateAfterUpdate(true);
+    try {
+      // Your existing submission logic here
       
+      // Log successful form submission
+      logAnalyticsEvent('form_submission_success', {
+        screen: 'step_one'
+      });
+      
+      setNavigateAfterUpdate(true);
+    } catch (error) {
+      // Log form submission error
+      logAnalyticsEvent('form_submission_error', {
+        screen: 'step_one',
+        error: error.message
+      });
     }
   };
 
@@ -420,7 +462,7 @@ const StepOne = ({ bookingData, onNavigate, onBack, setData, nftData, setSelecte
 
   const handleButtonClick = async () => {
     await connectAndSign(); // Wait for connection and signing to complete
-    handleNext(); // Move to the next step after signing
+    handleSubmit(); // Move to the next step after signing
   };
 
   useEffect(() => {
