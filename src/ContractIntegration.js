@@ -50,63 +50,47 @@ export const buyRoom = async (_tokenId) => {
       tokenId: _tokenId
     });
 
-    // Create RPC provider for reading state
-    //const rpcProvider = new ethers.JsonRpcProvider(RPC_URL);
-    
     // Get MetaMask provider and signer for transactions
     const metamaskProvider = new ethers.BrowserProvider(window.ethereum);
     const signer = await metamaskProvider.getSigner();
 
-    // Create contract instances with RPC provider for reading
-    const tokenWithProvider = new ethers.Contract(usdc_contract, tokenabi, signer);
-    const contractWithProvider = new ethers.Contract(contract_address, abi, signer);
+    // Create contract instances 
+    const tokenContract = new ethers.Contract(usdc_contract, tokenabi, signer);
+    const mainContract = new ethers.Contract(contract_address, abi, signer);
 
-    // Create contract instances with signer for transactions
-    const token = tokenWithProvider.connect(signer);
-    const contract = contractWithProvider.connect(signer);
-
-    // Check allowance using RPC provider (faster read)
+    // Get user address
     const userAddress = await signer.getAddress();
-    console.log("useraddress",userAddress);
-    console.log("contract_address",contract_address);
+    console.log("User address:", userAddress);
     sessionStorage.setItem("userAddress", userAddress);
 
-    console.log(
-      "token provider", tokenWithProvider
-    );
-    
-    const res = await tokenWithProvider.allowance(userAddress, contract_address);
-    console.log("Allowance result:", res.toString());
-
-
-    console.log("Approving token...");
-    const approve = await tokenWithProvider.approve(
-      contract_address,
-      "12412521512521521521125"
-    );
-    await approve.wait();
-    console.log("Approval transaction complete:", approve.hash);
-    if (res.toString() === "0"  ) {
-      console.log("Approving token...");
-      const approve = await token.approve(
-        contract_address,
-        "12412521512521521521125"
-      );
-      await approve.wait();
-      console.log("Approval transaction complete:", approve.hash);
+    // Improved allowance check
+    let allowance;
+    try {
+      allowance = await tokenContract.allowance(userAddress, contract_address);
+      console.log("Allowance:", allowance.toString());
+    } catch (allowanceError) {
+      console.error("Allowance check failed:", allowanceError);
+      // If allowance check fails, proceed with approval
+      allowance = ethers.toBigInt(0);
     }
 
-   
-    // Get gas estimate using RPC provider
-    const gasEstimate = await contractWithProvider.buyRoom.estimateGas(
+    // Approve tokens if allowance is 0
+    if (allowance === ethers.toBigInt(0)) {
+      console.log("Approving tokens...");
+      const approveAmount = ethers.parseUnits("1000000", 6); // Adjust decimals as needed
+      const approvalTx = await tokenContract.approve(contract_address, approveAmount);
+      await approvalTx.wait();
+      console.log("Approval transaction complete:", approvalTx.hash);
+    }
+
+    // Estimate gas for buyRoom
+    const gasEstimate = await mainContract.buyRoom.estimateGas(
       _tokenId,
       { from: userAddress }
     );
 
-    console.log("Estimated gas:", gasEstimate.toString());
-
-    // Execute transaction with signer and estimated gas
-    const transaction = await contractWithProvider.buyRoom(_tokenId, {
+    // Execute transaction
+    const transaction = await mainContract.buyRoom(_tokenId, {
       gasLimit: Math.ceil(Number(gasEstimate) * 1.2), // Add 20% buffer
     });
 
@@ -115,10 +99,9 @@ export const buyRoom = async (_tokenId) => {
       tokenId: _tokenId,
       userAddress: userAddress
     });
-    // const receipt = await transaction.wait();
-    // console.log("Transaction successful:", receipt);
+
     sessionStorage.setItem("transactionId", transaction.hash);
-    return  transaction.hash;
+    return transaction.hash;
 
   } catch (error) {
     logAnalyticsEvent('buy_room_error', {
@@ -126,7 +109,8 @@ export const buyRoom = async (_tokenId) => {
       error: error.message
     });
     console.error("Error buying room:", error);
-    //0xad4414c8ca792284cf42e0a91fe805c21bd3e048ea33171a4d9f2f294b37b55c
+
+    // Improved error handling
     if (error.code === 4001) {
       throw new Error("Transaction rejected by user");
     } else if (error.code === -32603) {
