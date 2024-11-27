@@ -189,7 +189,7 @@ const LaunchScreen = ({ onNavigate, nftData, setTokenID, tokenID, setTotalPrice 
         
         {/* Button */}
         <div className="flex justify-center items-center gap-4 md:mt-6 sm:mt-1.5">
-          <a href={`https://base.dassets.xyz/hotels/nft-details?nftId=${tokenID}`} target="_blank" rel="noopener noreferrer" className="text-white bg-[#331D19] border border-[#7B3F26] md:px-9 md:py-2 sm:text-xs sm:px-4 sm:py-1 md:text-[16px] rounded-lg ">
+          <a href={`https://polygon.dassets.xyz/hotels/nft-details?nftId=${tokenID}`} target="_blank" rel="noopener noreferrer" className="text-white bg-[#331D19] border border-[#7B3F26] md:px-9 md:py-2 sm:text-xs sm:px-4 sm:py-1 md:text-[16px] rounded-lg ">
             Hotel Details
           </a>
           <button
