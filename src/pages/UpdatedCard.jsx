@@ -53,6 +53,7 @@ const UpdatedCard = () => {
           bookingData={bookingData}
         />
       )}
+      
       {currentPage === "stepone" && (
         <StepOne
           nftData={nftData}
