@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { logAnalyticsEvent } from '../firebase';
-import first from "../assets/updated/bg.png"; // Ensure your assets are imported correctly
+import first from "../assets/updated/bg.png";
 import buk from "../assets/updated/buk.png";
 import icon1 from "../assets/updated/icon1.png";
 import icon2 from "../assets/updated/icon2.png";
