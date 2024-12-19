@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react'
 import first from '../assets/updated/bg.png';
 import buk from '../assets/updated/buk.png';
-import error from '../assets/updated/oops.png'
+import error from '../assets/updated/error.png'
 import axios from "axios";
 
 
@@ -69,7 +69,7 @@ const Cancelled = ({nftData}) => {
             />
 
             <h2 className="text-white md:text-lg sm:text-sm md:mt-5 sm:mt-3">
-              Oops! Booking resold. <br />
+              Booking Cancelled. <br />
               Check our marketplace for more deals!
             </h2>
 
