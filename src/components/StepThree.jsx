@@ -270,7 +270,7 @@ const handleBuyRoomClick = () => {
   if (navigateTo === "success") {
     return <div><SucessConfirmation nftData={nftData} tokenID={tokenID} /></div>; // Replace with your success component
   } else if (navigateTo === "resold") {
-    return <div><Resold nftData={nftData} tokenID={tokenID} /></div>; // Replace with your error/resold component
+    return <div><Cancelled nftData={nftData} tokenID={tokenID} /></div>; // Replace with your error/resold component
   }
 
   return (
