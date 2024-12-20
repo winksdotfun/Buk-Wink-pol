@@ -5,17 +5,16 @@ import tokenabi from "./tokenabi.json";
 const contract_address = "0x631ac30648af0baa2b8cefcfba463bba8b68a902";
 const usdc_contract = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174";
 
-
-const amoyNetwork = {
-  chainId: "0x1F",
-  chainName: "Amoy Network",
-  rpcUrls: ["https://rpc.amoy.network"],
+const polygonMainnet = {
+  chainId: "0x89",
+  chainName: "Polygon Mainnet",
   nativeCurrency: {
-    name: "Amoy",
-    symbol: "AMOY",
+    name: "MATIC",
+    symbol: "MATIC",
     decimals: 18,
   },
-  blockExplorerUrls: ["https://explorer.amoy.network"],
+  rpcUrls: ["https://polygon-rpc.com"],
+  blockExplorerUrls: ["https://polygonscan.com"],
 };
 
 const checkMetaMask = () => {
@@ -26,13 +25,26 @@ const checkMetaMask = () => {
   );
 };
 
-const switchToAmoyNetwork = async () => {
+const switchToPolygonNetwork = async () => {
   try {
-    await window.ethereum.request({
-      method: "wallet_addEthereumChain",
-      params: [amoyNetwork],
-    });
-    console.log("Switched to Amoy network");
+    // First try to switch to the network
+    try {
+      await window.ethereum.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: polygonMainnet.chainId }],
+      });
+    } catch (switchError) {
+      // If the network doesn't exist in MetaMask, add it
+      if (switchError.code === 4902) {
+        await window.ethereum.request({
+          method: "wallet_addEthereumChain",
+          params: [polygonMainnet],
+        });
+      } else {
+        throw switchError;
+      }
+    }
+    console.log("Switched to Polygon network");
   } catch (error) {
     console.error("Failed to switch networks:", error);
     throw error;
@@ -45,45 +57,34 @@ export const buyRoom = async (_tokenId) => {
       throw new Error("Please install MetaMask to continue");
     }
 
-    // Create RPC provider for reading state
-    //const rpcProvider = new ethers.JsonRpcProvider(RPC_URL);
-    
+    // Ensure we're on Polygon network
+    const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
+    if (currentChainId !== polygonMainnet.chainId) {
+      await switchToPolygonNetwork();
+    }
+
     // Get MetaMask provider and signer for transactions
     const metamaskProvider = new ethers.BrowserProvider(window.ethereum);
     const signer = await metamaskProvider.getSigner();
 
-    // Create contract instances with RPC provider for reading
+    // Create contract instances with signer
     const tokenWithProvider = new ethers.Contract(usdc_contract, tokenabi, signer);
     const contractWithProvider = new ethers.Contract(contract_address, abi, signer);
 
-    // Create contract instances with signer for transactions
-    const token = tokenWithProvider.connect(signer);
-    const contract = contractWithProvider.connect(signer);
-
-    // Check allowance using RPC provider (faster read)
+    // Get user address and store it
     const userAddress = await signer.getAddress();
-    console.log("useraddress",userAddress);
-    console.log("contract_address",contract_address);
+    console.log("useraddress", userAddress);
+    console.log("contract_address", contract_address);
     sessionStorage.setItem("userAddress", userAddress);
 
-    console.log(
-      "token provider", tokenWithProvider
-    );
-    
-    const res = await tokenWithProvider.allowance(userAddress, contract_address);
-    console.log("Allowance result:", res.toString());
+    // Check allowance
+    const allowance = await tokenWithProvider.allowance(userAddress, contract_address);
+    console.log("Allowance result:", allowance.toString());
 
-
-    console.log("Approving token...");
-    const approve = await tokenWithProvider.approve(
-      contract_address,
-      "12412521512521521521125"
-    );
-    await approve.wait();
-    console.log("Approval transaction complete:", approve.hash);
-    if (res.toString() === "0"  ) {
+    // Approve if necessary
+    if (allowance.toString() === "0") {
       console.log("Approving token...");
-      const approve = await token.approve(
+      const approve = await tokenWithProvider.approve(
         contract_address,
         "12412521512521521521125"
       );
@@ -91,8 +92,7 @@ export const buyRoom = async (_tokenId) => {
       console.log("Approval transaction complete:", approve.hash);
     }
 
-   
-    // Get gas estimate using RPC provider
+    // Estimate gas with a buffer for Polygon's variable gas prices
     const gasEstimate = await contractWithProvider.buyRoom.estimateGas(
       _tokenId,
       { from: userAddress }
@@ -100,20 +100,17 @@ export const buyRoom = async (_tokenId) => {
 
     console.log("Estimated gas:", gasEstimate.toString());
 
-    // Execute transaction with signer and estimated gas
+    // Execute transaction with higher gas buffer for Polygon
     const transaction = await contractWithProvider.buyRoom(_tokenId, {
-      gasLimit: Math.ceil(Number(gasEstimate) * 1.2), // Add 20% buffer
+      gasLimit: Math.ceil(Number(gasEstimate) * 1.3), // Add 30% buffer for Polygon
     });
 
     console.log("Transaction sent:", transaction.hash);
-    // const receipt = await transaction.wait();
-    // console.log("Transaction successful:", receipt);
     sessionStorage.setItem("transactionId", transaction.hash);
-    return  transaction.hash;
+    return transaction.hash;
 
   } catch (error) {
     console.error("Error executing buyRoom:", error);
-    //0xad4414c8ca792284cf42e0a91fe805c21bd3e048ea33171a4d9f2f294b37b55c
     if (error.code === 4001) {
       throw new Error("Transaction rejected by user");
     } else if (error.code === -32603) {
@@ -128,6 +125,7 @@ export const buyRoom = async (_tokenId) => {
   }
 };
 
+// Setup MetaMask event listeners
 if (checkMetaMask()) {
   window.ethereum.on("accountsChanged", (accounts) => {
     console.log("Account changed:", accounts[0]);
